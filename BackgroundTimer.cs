@@ -24,6 +24,39 @@ namespace BackgroundTimer
         public BackgroundTimerState State { get; private set; } = BackgroundTimerState.NotRunning;
 
         /// <summary>
+        /// Starts a new timer with a <see cref="TimeSpan"/>, <see cref="BackgroundTimerCallback"/> and optionally with a <see cref="TimeSpan"/> and returns it
+        /// </summary>
+        /// <param name="period">The <see cref="TimeSpan"/> on which the timer should run</param>
+        /// <param name="startDelay">The <see cref="TimeSpan"/> the timer waits until it starts</param>
+        /// <param name="callback">The <see cref="BackgroundTimerCallback"/> that should be executed every tick</param>
+        public static BackgroundTimer StartNew(TimeSpan period, BackgroundTimerCallback callback, TimeSpan? startDelay = null)
+        {
+            BackgroundTimer timer = new();
+
+            if (startDelay is null) timer.Start(period, callback);
+            else timer.Start(period, callback, startDelay.Value);
+
+            return timer;
+        }
+
+        /// <summary>
+        /// Starts a new timer with a <see cref="TimeSpan"/>, <see cref="Action"/>[], <see cref="bool"/> and optionally with a <see cref="TimeSpan"/> and returns it
+        /// </summary>
+        /// <param name="period">The <see cref="TimeSpan"/> on which the timer should run</param>
+        /// <param name="actionsParallel"><see langword="true"/> if the actions should be invoked parallel, otherwise <see langword="false"/></param>
+        /// <param name="startDelay">The <see cref="TimeSpan"/> the timer waits until it starts</param>
+        /// <param name="actions">The <see cref="Action"/>[] that should be invoked every tick</param>
+        public static BackgroundTimer StartNew(TimeSpan period, bool actionsParallel, TimeSpan? startDelay = null, params Action[] actions)
+        {
+            BackgroundTimer timer = new();
+
+            if (startDelay is null) timer.Start(period, actions, actionsParallel);
+            else timer.Start(period, actions, startDelay.Value, actionsParallel);
+
+            return timer;
+        }
+
+        /// <summary>
         /// Starts the timer with a <see cref="TimeSpan"/> and <see cref="Action"/>
         /// </summary>
         /// <param name="period">The <see cref="TimeSpan"/> on which the timer should run</param>
