@@ -1,5 +1,8 @@
 # BackgroundTimer
 An easy to use timer that runs in the background and provides useful functions like Callbacks and States.
+
+> 🟡 **Project status**: Maintenance mode<sup>[[?]](https://github.com/BlyZeYT/.github/blob/master/project-status.md)</sup>
+
 ## How to use
 Initialize a new BackgroundTimer instance.
 ```
