@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <ApplicationIcon>icon.ico</ApplicationIcon>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
+    <PackageId>BlyZe.$(AssemblyName)</PackageId>
+    <Authors>BlyZe</Authors>
+    <PackageIcon>icon.png</PackageIcon>
+    <Description>An easy to use timer that runs in the background and provides useful functions like Callbacks and States.</Description>
+    <RepositoryUrl>https://github.com/BlyZeYT/BackgroundTimer</RepositoryUrl>
+    <PackageTags>timer;backgroundtimer;stopwatch;async;asynctimer;blyze;background timer; async timer;</PackageTags>
+    <PackageProjectUrl>https://github.com/BlyZeYT/BackgroundTimer</PackageProjectUrl>
+    <Product>Background Timer</Product>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <Version>1.2.0</Version>
+    <PackageReleaseNotes>Added the opportunity to start a new timer without needing a new instance</PackageReleaseNotes>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="icon.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="icon.png">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
+
+</Project>
