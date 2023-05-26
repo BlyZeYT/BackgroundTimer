@@ -1,7 +1,16 @@
+<p align="left">
+  <img src="https://github.com/BlyZeYT/BackgroundTimer/blob/master/icon.png" height="175">
+</p>
+
 # BackgroundTimer
-An easy to use timer that runs in the background and provides useful functions like Callbacks and States.
+An easy to use timer that runs in the background and provides useful functions like callbacks and states.
+For ideas, feedback or anything else just open an issue.
 
 > 🟡 **Project status**: Maintenance mode<sup>[[?]](https://github.com/BlyZeYT/.github/blob/master/project-status.md)</sup>
+
+| Package | NuGet |
+| ------- | ----- |
+| [BlyZe.BackgroundTimer](https://www.nuget.org/packages/BlyZe.BackgroundTimer) | [![BlyZe.BackgroundTimer](https://img.shields.io/nuget/v/BlyZe.BackgroundTimer?color=white&label=NuGet)](https://www.nuget.org/packages/BlyZe.BackgroundTimer)
 
 ## How to use
 Initialize a new BackgroundTimer instance.
