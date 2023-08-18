@@ -15,7 +15,7 @@
     <PackageProjectUrl>https://github.com/BlyZeYT/BackgroundTimer</PackageProjectUrl>
     <Product>Background Timer</Product>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <Version>1.2.0</Version>
+    <Version>1.4.0</Version>
     <PackageReleaseNotes>Added the opportunity to start a new timer without needing a new instance</PackageReleaseNotes>
   </PropertyGroup>
 

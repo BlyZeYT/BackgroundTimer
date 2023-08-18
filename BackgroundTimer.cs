@@ -75,15 +75,11 @@ public sealed class BackgroundTimer : IDisposable, IAsyncDisposable
 
                 while (await timer.WaitForNextTickAsync(_cts.Token))
                 {
-                    CurrentTick++;
+                    unchecked { CurrentTick++; }
                     action.Invoke();
                 }
             }
             catch (OperationCanceledException) { }
-            catch (OverflowException)
-            {
-                await StopAsync();
-            }
         }
 
         _task = DoStart();
@@ -108,15 +104,11 @@ public sealed class BackgroundTimer : IDisposable, IAsyncDisposable
 
                 while (await timer.WaitForNextTickAsync(_cts.Token))
                 {
-                    CurrentTick++;
+                    unchecked { CurrentTick++; }
                     foreach (var action in actions) { action.Invoke(); }
                 }
             }
             catch (OperationCanceledException) { }
-            catch (OverflowException)
-            {
-                await StopAsync();
-            }
         }
 
         _task = DoStart();
@@ -142,7 +134,7 @@ public sealed class BackgroundTimer : IDisposable, IAsyncDisposable
 
                 while (await timer.WaitForNextTickAsync(_cts.Token))
                 {
-                    CurrentTick++;
+                    unchecked { CurrentTick++; }
                     if (actionsParallel) Parallel.Invoke(actions);
                     else
                     {
@@ -151,10 +143,6 @@ public sealed class BackgroundTimer : IDisposable, IAsyncDisposable
                 }
             }
             catch (OperationCanceledException) { }
-            catch (OverflowException)
-            {
-                await StopAsync();
-            }
         }
 
         _task = DoStart();
@@ -177,19 +165,13 @@ public sealed class BackgroundTimer : IDisposable, IAsyncDisposable
             {
                 var timer = new PeriodicTimer(period);
 
-                var ticks = 0;
                 while (await timer.WaitForNextTickAsync(_cts.Token))
                 {
-                    CurrentTick++;
-                    ticks++;
-                    callback(ticks);
+                    unchecked { CurrentTick++; }
+                    callback(CurrentTick);
                 }
             }
             catch (OperationCanceledException) { }
-            catch (OverflowException)
-            {
-                await StopAsync();
-            }
         }
 
         _task = DoStart();
@@ -213,20 +195,14 @@ public sealed class BackgroundTimer : IDisposable, IAsyncDisposable
             {
                 var timer = new PeriodicTimer(period);
 
-                var ticks = 0;
                 while (await timer.WaitForNextTickAsync(_cts.Token))
                 {
-                    CurrentTick++;
-                    ticks++;
-                    callback(ticks);
+                    unchecked { CurrentTick++; }
+                    callback(CurrentTick);
                     action.Invoke();
                 }
             }
             catch (OperationCanceledException) { }
-            catch (OverflowException)
-            {
-                await StopAsync();
-            }
         }
 
         _task = DoStart();
@@ -250,20 +226,14 @@ public sealed class BackgroundTimer : IDisposable, IAsyncDisposable
             {
                 var timer = new PeriodicTimer(period);
 
-                var ticks = 0;
                 while (await timer.WaitForNextTickAsync(_cts.Token))
                 {
-                    CurrentTick++;
-                    ticks++;
-                    callback(ticks);
+                    unchecked { CurrentTick++; }
+                    callback(CurrentTick);
                     foreach (var action in actions) { action.Invoke(); }
                 }
             }
             catch (OperationCanceledException) { }
-            catch (OverflowException)
-            {
-                await StopAsync();
-            }
         }
 
         _task = DoStart();
@@ -288,12 +258,10 @@ public sealed class BackgroundTimer : IDisposable, IAsyncDisposable
             {
                 var timer = new PeriodicTimer(period);
 
-                var ticks = 0;
                 while (await timer.WaitForNextTickAsync(_cts.Token))
                 {
-                    CurrentTick++;
-                    ticks++;
-                    callback(ticks);
+                    unchecked { CurrentTick++; }
+                    callback(CurrentTick);
                     if (actionsParallel) Parallel.Invoke(actions);
                     else
                     {
@@ -302,10 +270,6 @@ public sealed class BackgroundTimer : IDisposable, IAsyncDisposable
                 }
             }
             catch (OperationCanceledException) { }
-            catch (OverflowException)
-            {
-                await StopAsync();
-            }
         }
 
         _task = DoStart();
@@ -335,15 +299,11 @@ public sealed class BackgroundTimer : IDisposable, IAsyncDisposable
 
                 while (await timer.WaitForNextTickAsync(_cts.Token))
                 {
-                    CurrentTick++;
+                    unchecked { CurrentTick++; }
                     action.Invoke();
                 }
             }
             catch (OperationCanceledException) { }
-            catch (OverflowException)
-            {
-                await StopAsync();
-            }
         }
 
         _task = DoStart();
@@ -373,15 +333,11 @@ public sealed class BackgroundTimer : IDisposable, IAsyncDisposable
 
                 while (await timer.WaitForNextTickAsync(_cts.Token))
                 {
-                    CurrentTick++;
+                    unchecked { CurrentTick++; }
                     foreach (var action in actions) { action.Invoke(); }
                 }
             }
             catch (OperationCanceledException) { }
-            catch (OverflowException)
-            {
-                await StopAsync();
-            }
         }
 
         _task = DoStart();
@@ -412,7 +368,7 @@ public sealed class BackgroundTimer : IDisposable, IAsyncDisposable
 
                 while (await timer.WaitForNextTickAsync(_cts.Token))
                 {
-                    CurrentTick++;
+                    unchecked { CurrentTick++; }
                     if (actionsParallel) Parallel.Invoke(actions);
                     else
                     {
@@ -421,10 +377,6 @@ public sealed class BackgroundTimer : IDisposable, IAsyncDisposable
                 }
             }
             catch (OperationCanceledException) { }
-            catch (OverflowException)
-            {
-                await StopAsync();
-            }
         }
 
         _task = DoStart();
@@ -452,19 +404,13 @@ public sealed class BackgroundTimer : IDisposable, IAsyncDisposable
 
                 var timer = new PeriodicTimer(period);
 
-                var ticks = 0;
                 while (await timer.WaitForNextTickAsync(_cts.Token))
                 {
-                    CurrentTick++;
-                    ticks++;
-                    callback(ticks);
+                    unchecked { CurrentTick++; }
+                    callback(CurrentTick);
                 }
             }
             catch (OperationCanceledException) { }
-            catch (OverflowException)
-            {
-                await StopAsync();
-            }
         }
 
         _task = DoStart();
@@ -493,20 +439,14 @@ public sealed class BackgroundTimer : IDisposable, IAsyncDisposable
 
                 var timer = new PeriodicTimer(period);
 
-                var ticks = 0;
                 while (await timer.WaitForNextTickAsync(_cts.Token))
                 {
-                    CurrentTick++;
-                    ticks++;
-                    callback(ticks);
+                    unchecked { CurrentTick++; }
+                    callback(CurrentTick);
                     action.Invoke();
                 }
             }
             catch (OperationCanceledException) { }
-            catch (OverflowException)
-            {
-                await StopAsync();
-            }
         }
 
         _task = DoStart();
@@ -535,20 +475,14 @@ public sealed class BackgroundTimer : IDisposable, IAsyncDisposable
 
                 var timer = new PeriodicTimer(period);
 
-                var ticks = 0;
                 while (await timer.WaitForNextTickAsync(_cts.Token))
                 {
-                    CurrentTick++;
-                    ticks++;
-                    callback(ticks);
+                    unchecked { CurrentTick++; }
+                    callback(CurrentTick);
                     foreach (var action in actions) { action.Invoke(); }
                 }
             }
             catch (OperationCanceledException) { }
-            catch (OverflowException)
-            {
-                await StopAsync();
-            }
         }
 
         _task = DoStart();
@@ -578,12 +512,10 @@ public sealed class BackgroundTimer : IDisposable, IAsyncDisposable
 
                 var timer = new PeriodicTimer(period);
 
-                var ticks = 0;
                 while (await timer.WaitForNextTickAsync(_cts.Token))
                 {
-                    CurrentTick++;
-                    ticks++;
-                    callback(ticks);
+                    unchecked { CurrentTick++; }
+                    callback(CurrentTick);
                     if (actionsParallel) Parallel.Invoke(actions);
                     else
                     {
@@ -592,10 +524,6 @@ public sealed class BackgroundTimer : IDisposable, IAsyncDisposable
                 }
             }
             catch (OperationCanceledException) { }
-            catch (OverflowException)
-            {
-                await StopAsync();
-            }
         }
 
         _task = DoStart();
