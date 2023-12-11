@@ -9,8 +9,8 @@ using System.Threading.Tasks;
 /// </summary>
 public sealed class BackgroundTimer : IDisposable, IAsyncDisposable
 {
-    private Task _task;
-    private CancellationTokenSource _cts;
+    private Task task;
+    private CancellationTokenSource cts;
 
     /// <summary>
     /// The current tick of the currently running timer
@@ -38,29 +38,12 @@ public sealed class BackgroundTimer : IDisposable, IAsyncDisposable
     /// <param name="period">The <see cref="TimeSpan"/> on which the timer should run</param>
     /// <param name="startDelay">The <see cref="TimeSpan"/> the timer waits until it starts</param>
     /// <param name="callback">The <see cref="BackgroundTimerCallback"/> that should be executed every tick</param>
-    public static BackgroundTimer StartNew(TimeSpan period, BackgroundTimerCallback callback, TimeSpan? startDelay = null)
+    /// <param name="stopAtTick">The amount of ticks at which the timer should stop itself</param>
+    public static BackgroundTimer StartNew(TimeSpan period, BackgroundTimerCallback callback, TimeSpan? startDelay = null, int stopAtTick = -1)
     {
         var timer = new BackgroundTimer();
 
-        if (startDelay.HasValue) timer.Start(period, callback, startDelay.Value);
-        else timer.Start(period, callback);
-
-        return timer;
-    }
-
-    /// <summary>
-    /// Starts a new timer with a <see cref="TimeSpan"/>, <see cref="Action"/>[], <see cref="bool"/> and optionally with a <see cref="TimeSpan"/> and returns it
-    /// </summary>
-    /// <param name="period">The <see cref="TimeSpan"/> on which the timer should run</param>
-    /// <param name="actionsParallel"><see langword="true"/> if the actions should be invoked parallel, otherwise <see langword="false"/></param>
-    /// <param name="startDelay">The <see cref="TimeSpan"/> the timer waits until it starts</param>
-    /// <param name="actions">The <see cref="Action"/>[] that should be invoked every tick</param>
-    public static BackgroundTimer StartNew(TimeSpan period, bool actionsParallel, TimeSpan? startDelay = null, params Action[] actions)
-    {
-        var timer = new BackgroundTimer();
-
-        if (startDelay.HasValue) timer.Start(period, actions, startDelay.Value, actionsParallel);
-        else timer.Start(period, actions, actionsParallel);
+        timer.Start(period, callback, startDelay, stopAtTick);
 
         return timer;
     }
@@ -70,338 +53,12 @@ public sealed class BackgroundTimer : IDisposable, IAsyncDisposable
     /// </summary>
     public BackgroundTimer()
     {
-        _task = null!;
-        _cts = new();
+        task = null!;
+        cts = new();
 
         CurrentTick = 0;
         Period = TimeSpan.Zero;
         State = BackgroundTimerState.NotRunning;
-    }
-
-    /// <summary>
-    /// Starts the timer with a <see cref="TimeSpan"/> and <see cref="Action"/>
-    /// </summary>
-    /// <param name="period">The <see cref="TimeSpan"/> on which the timer should run</param>
-    /// <param name="action">The <see cref="Action"/> that should be invoked every tick</param>
-    public void Start(TimeSpan period, Action action)
-    {
-        if (IsRunning) return;
-
-        State = BackgroundTimerState.Running;
-        Period = period;
-        async Task DoStart()
-        {
-            try
-            {
-                var timer = new PeriodicTimer(period);
-
-                while (await timer.WaitForNextTickAsync(_cts.Token))
-                {
-                    unchecked { CurrentTick++; }
-                    action.Invoke();
-                }
-            }
-            catch (OperationCanceledException) { }
-        }
-
-        _task = DoStart();
-    }
-
-    /// <summary>
-    /// Starts the timer with a <see cref="TimeSpan"/> and <see cref="Action"/>[]
-    /// </summary>
-    /// <param name="period">The <see cref="TimeSpan"/> on which the timer should run</param>
-    /// <param name="actions">The <see cref="Action"/>[] that should be invoked every tick</param>
-    public void Start(TimeSpan period, Action[] actions)
-    {
-        if (IsRunning) return;
-
-        State = BackgroundTimerState.Running;
-        Period = period;
-        async Task DoStart()
-        {
-            try
-            {
-                var timer = new PeriodicTimer(period);
-
-                while (await timer.WaitForNextTickAsync(_cts.Token))
-                {
-                    unchecked { CurrentTick++; }
-                    foreach (var action in actions) { action.Invoke(); }
-                }
-            }
-            catch (OperationCanceledException) { }
-        }
-
-        _task = DoStart();
-    }
-
-    /// <summary>
-    /// Starts the timer with a <see cref="TimeSpan"/> and <see cref="Action"/>[]
-    /// </summary>
-    /// <param name="period">The <see cref="TimeSpan"/> on which the timer should run</param>
-    /// <param name="actions">The <see cref="Action"/>[] that should be invoked every tick</param>
-    /// <param name="actionsParallel"><see langword="true"/> if the actions should be invoked parallel, otherwise <see langword="false"/></param>
-    public void Start(TimeSpan period, Action[] actions, bool actionsParallel)
-    {
-        if (IsRunning) return;
-
-        State = BackgroundTimerState.Running;
-        Period = period;
-        async Task DoStart()
-        {
-            try
-            {
-                var timer = new PeriodicTimer(period);
-
-                while (await timer.WaitForNextTickAsync(_cts.Token))
-                {
-                    unchecked { CurrentTick++; }
-                    if (actionsParallel) Parallel.Invoke(actions);
-                    else
-                    {
-                        foreach (var action in actions) { action.Invoke(); }
-                    }
-                }
-            }
-            catch (OperationCanceledException) { }
-        }
-
-        _task = DoStart();
-    }
-
-    /// <summary>
-    /// Starts the timer with a <see cref="TimeSpan"/> and <see cref="BackgroundTimerCallback"/>
-    /// </summary>
-    /// <param name="period">The <see cref="TimeSpan"/> on which the timer should run</param>
-    /// <param name="callback">The <see cref="BackgroundTimerCallback"/> that should be executed every tick</param>
-    public void Start(TimeSpan period, BackgroundTimerCallback callback)
-    {
-        if (IsRunning) return;
-
-        State = BackgroundTimerState.Running;
-        Period = period;
-        async Task DoStart()
-        {
-            try
-            {
-                var timer = new PeriodicTimer(period);
-
-                while (await timer.WaitForNextTickAsync(_cts.Token))
-                {
-                    unchecked { CurrentTick++; }
-                    callback(CurrentTick);
-                }
-            }
-            catch (OperationCanceledException) { }
-        }
-
-        _task = DoStart();
-    }
-
-    /// <summary>
-    /// Starts the timer with a <see cref="TimeSpan"/>, an <see cref="Action"/> and <see cref="BackgroundTimerCallback"/>
-    /// </summary>
-    /// <param name="period">The <see cref="TimeSpan"/> on which the timer should run</param>
-    /// <param name="action">The <see cref="Action"/> that should be invoked every tick</param>
-    /// <param name="callback">The <see cref="BackgroundTimerCallback"/> that should be executed every tick</param>
-    public void Start(TimeSpan period, Action action, BackgroundTimerCallback callback)
-    {
-        if (IsRunning) return;
-
-        State = BackgroundTimerState.Running;
-        Period = period;
-        async Task DoStart()
-        {
-            try
-            {
-                var timer = new PeriodicTimer(period);
-
-                while (await timer.WaitForNextTickAsync(_cts.Token))
-                {
-                    unchecked { CurrentTick++; }
-                    callback(CurrentTick);
-                    action.Invoke();
-                }
-            }
-            catch (OperationCanceledException) { }
-        }
-
-        _task = DoStart();
-    }
-
-    /// <summary>
-    /// Starts the timer with a <see cref="TimeSpan"/>, an <see cref="Action"/>[] and <see cref="BackgroundTimerCallback"/>
-    /// </summary>
-    /// <param name="period">The <see cref="TimeSpan"/> on which the timer should run</param>
-    /// <param name="actions">The <see cref="Action"/>[] that should be invoked every tick</param>
-    /// <param name="callback">The <see cref="BackgroundTimerCallback"/> that should be executed every tick</param>
-    public void Start(TimeSpan period, Action[] actions, BackgroundTimerCallback callback)
-    {
-        if (IsRunning) return;
-
-        State = BackgroundTimerState.Running;
-        Period = period;
-        async Task DoStart()
-        {
-            try
-            {
-                var timer = new PeriodicTimer(period);
-
-                while (await timer.WaitForNextTickAsync(_cts.Token))
-                {
-                    unchecked { CurrentTick++; }
-                    callback(CurrentTick);
-                    foreach (var action in actions) { action.Invoke(); }
-                }
-            }
-            catch (OperationCanceledException) { }
-        }
-
-        _task = DoStart();
-    }
-
-    /// <summary>
-    /// Starts the timer with a <see cref="TimeSpan"/>, an <see cref="Action"/>[] and <see cref="BackgroundTimerCallback"/>
-    /// </summary>
-    /// <param name="period">The <see cref="TimeSpan"/> on which the timer should run</param>
-    /// <param name="actions">The <see cref="Action"/>[] that should be invoked every tick</param>
-    /// <param name="callback">The <see cref="BackgroundTimerCallback"/> that should be executed every tick</param>
-    /// <param name="actionsParallel"><see langword="true"/> if the actions should be invoked parallel, otherwise <see langword="false"/></param>
-    public void Start(TimeSpan period, Action[] actions, BackgroundTimerCallback callback, bool actionsParallel)
-    {
-        if (IsRunning) return;
-
-        State = BackgroundTimerState.Running;
-        Period = period;
-        async Task DoStart()
-        {
-            try
-            {
-                var timer = new PeriodicTimer(period);
-
-                while (await timer.WaitForNextTickAsync(_cts.Token))
-                {
-                    unchecked { CurrentTick++; }
-                    callback(CurrentTick);
-                    if (actionsParallel) Parallel.Invoke(actions);
-                    else
-                    {
-                        foreach (var action in actions) { action.Invoke(); }
-                    }
-                }
-            }
-            catch (OperationCanceledException) { }
-        }
-
-        _task = DoStart();
-    }
-
-    /// <summary>
-    /// Starts the timer with a <see cref="TimeSpan"/>, an <see cref="Action"/> and <see cref="TimeSpan"/>
-    /// </summary>
-    /// <param name="period">The <see cref="TimeSpan"/> on which the timer should run</param>
-    /// <param name="action">The <see cref="Action"/> that should be invoked every tick</param>
-    /// <param name="startDelay">The <see cref="TimeSpan"/> the timer waits until it starts</param>
-    public void Start(TimeSpan period, Action action, TimeSpan startDelay)
-    {
-        if (IsRunning) return;
-
-        State = BackgroundTimerState.Starting;
-        Period = period;
-        async Task DoStart()
-        {
-            try
-            {
-                await Task.Delay(startDelay);
-
-                State = BackgroundTimerState.Running;
-
-                var timer = new PeriodicTimer(period);
-
-                while (await timer.WaitForNextTickAsync(_cts.Token))
-                {
-                    unchecked { CurrentTick++; }
-                    action.Invoke();
-                }
-            }
-            catch (OperationCanceledException) { }
-        }
-
-        _task = DoStart();
-    }
-
-    /// <summary>
-    /// Starts the timer with a <see cref="TimeSpan"/>, an <see cref="Action"/>[] and <see cref="TimeSpan"/>
-    /// </summary>
-    /// <param name="period">The <see cref="TimeSpan"/> on which the timer should run</param>
-    /// <param name="actions">The <see cref="Action"/>[] that should be invoked every tick</param>
-    /// <param name="startDelay">The <see cref="TimeSpan"/> the timer waits until it starts</param>
-    public void Start(TimeSpan period, Action[] actions, TimeSpan startDelay)
-    {
-        if (IsRunning) return;
-
-        State = BackgroundTimerState.Starting;
-        Period = period;
-        async Task DoStart()
-        {
-            try
-            {
-                await Task.Delay(startDelay);
-
-                State = BackgroundTimerState.Running;
-
-                var timer = new PeriodicTimer(period);
-
-                while (await timer.WaitForNextTickAsync(_cts.Token))
-                {
-                    unchecked { CurrentTick++; }
-                    foreach (var action in actions) { action.Invoke(); }
-                }
-            }
-            catch (OperationCanceledException) { }
-        }
-
-        _task = DoStart();
-    }
-
-    /// <summary>
-    /// Starts the timer with a <see cref="TimeSpan"/>, an <see cref="Action"/>[] and <see cref="TimeSpan"/>
-    /// </summary>
-    /// <param name="period">The <see cref="TimeSpan"/> on which the timer should run</param>
-    /// <param name="actions">The <see cref="Action"/>[] that should be invoked every tick</param>
-    /// <param name="startDelay">The <see cref="TimeSpan"/> the timer waits until it starts</param>
-    /// <param name="actionsParallel"><see langword="true"/> if the actions should be invoked parallel, otherwise <see langword="false"/></param>
-    public void Start(TimeSpan period, Action[] actions, TimeSpan startDelay, bool actionsParallel)
-    {
-        if (IsRunning) return;
-
-        State = BackgroundTimerState.Starting;
-        Period = period;
-        async Task DoStart()
-        {
-            try
-            {
-                await Task.Delay(startDelay);
-
-                State = BackgroundTimerState.Starting;
-
-                var timer = new PeriodicTimer(period);
-
-                while (await timer.WaitForNextTickAsync(_cts.Token))
-                {
-                    unchecked { CurrentTick++; }
-                    if (actionsParallel) Parallel.Invoke(actions);
-                    else
-                    {
-                        foreach (var action in actions) { action.Invoke(); }
-                    }
-                }
-            }
-            catch (OperationCanceledException) { }
-        }
-
-        _task = DoStart();
     }
 
     /// <summary>
@@ -410,24 +67,28 @@ public sealed class BackgroundTimer : IDisposable, IAsyncDisposable
     /// <param name="period">The <see cref="TimeSpan"/> on which the timer should run</param>
     /// <param name="callback">The <see cref="BackgroundTimerCallback"/> that should be executed every tick</param>
     /// <param name="startDelay">The <see cref="TimeSpan"/> the timer waits until it starts</param>
-    public void Start(TimeSpan period, BackgroundTimerCallback callback, TimeSpan startDelay)
+    /// <param name="stopAtTick">The amount of ticks at which the timer should stop itself</param>
+    public void Start(TimeSpan period, BackgroundTimerCallback callback, TimeSpan? startDelay = null, int stopAtTick = -1)
     {
         if (IsRunning) return;
 
         State = BackgroundTimerState.Starting;
         Period = period;
+
         async Task DoStart()
         {
             try
             {
-                await Task.Delay(startDelay);
+                if (startDelay.HasValue) await Task.Delay(startDelay.Value);
 
                 State = BackgroundTimerState.Running;
 
                 var timer = new PeriodicTimer(period);
 
-                while (await timer.WaitForNextTickAsync(_cts.Token))
+                while (await timer.WaitForNextTickAsync(cts.Token))
                 {
+                    if (CurrentTick == stopAtTick) await StopAsync();
+
                     unchecked { CurrentTick++; }
                     callback(CurrentTick);
                 }
@@ -435,169 +96,42 @@ public sealed class BackgroundTimer : IDisposable, IAsyncDisposable
             catch (OperationCanceledException) { }
         }
 
-        _task = DoStart();
+        task = DoStart();
     }
 
     /// <summary>
-    /// Starts the timer with a <see cref="TimeSpan"/>, a <see cref="Action"/>, a <see cref="BackgroundTimerCallback"/> and <see cref="TimeSpan"/>
-    /// </summary>
-    /// <param name="period">The <see cref="TimeSpan"/> on which the timer should run</param>
-    /// <param name="action">The <see cref="Action"/> that should be invoked every tick</param>
-    /// <param name="callback">The <see cref="BackgroundTimerCallback"/> that should be executed every tick</param>
-    /// <param name="startDelay">The <see cref="TimeSpan"/> the timer waits until it starts</param>
-    public void Start(TimeSpan period, Action action, BackgroundTimerCallback callback, TimeSpan startDelay)
-    {
-        if (IsRunning) return;
-
-        State = BackgroundTimerState.Starting;
-        Period = period;
-        async Task DoStart()
-        {
-            try
-            {
-                await Task.Delay(startDelay);
-
-                State = BackgroundTimerState.Running;
-
-                var timer = new PeriodicTimer(period);
-
-                while (await timer.WaitForNextTickAsync(_cts.Token))
-                {
-                    unchecked { CurrentTick++; }
-                    callback(CurrentTick);
-                    action.Invoke();
-                }
-            }
-            catch (OperationCanceledException) { }
-        }
-
-        _task = DoStart();
-    }
-
-    /// <summary>
-    /// Starts the timer with a <see cref="TimeSpan"/>, a <see cref="Action"/>[], a <see cref="BackgroundTimerCallback"/> and <see cref="TimeSpan"/>
-    /// </summary>
-    /// <param name="period">The <see cref="TimeSpan"/> on which the timer should run</param>
-    /// <param name="actions">The <see cref="Action"/>[] that should be invoked every tick</param>
-    /// <param name="callback">The <see cref="BackgroundTimerCallback"/> that should be executed every tick</param>
-    /// <param name="startDelay">The <see cref="TimeSpan"/> the timer waits until it starts</param>
-    public void Start(TimeSpan period, Action[] actions, BackgroundTimerCallback callback, TimeSpan startDelay)
-    {
-        if (IsRunning) return;
-
-        State = BackgroundTimerState.Starting;
-        Period = period;
-        async Task DoStart()
-        {
-            try
-            {
-                await Task.Delay(startDelay);
-
-                State = BackgroundTimerState.Running;
-
-                var timer = new PeriodicTimer(period);
-
-                while (await timer.WaitForNextTickAsync(_cts.Token))
-                {
-                    unchecked { CurrentTick++; }
-                    callback(CurrentTick);
-                    foreach (var action in actions) { action.Invoke(); }
-                }
-            }
-            catch (OperationCanceledException) { }
-        }
-
-        _task = DoStart();
-    }
-
-    /// <summary>
-    /// Starts the timer with a <see cref="TimeSpan"/>, a <see cref="Action"/>[], a <see cref="BackgroundTimerCallback"/> and <see cref="TimeSpan"/>
-    /// </summary>
-    /// <param name="period">The <see cref="TimeSpan"/> on which the timer should run</param>
-    /// <param name="actions">The <see cref="Action"/>[] that should be invoked every tick</param>
-    /// <param name="callback">The <see cref="BackgroundTimerCallback"/> that should be executed every tick</param>
-    /// <param name="startDelay">The <see cref="TimeSpan"/> the timer waits until it starts</param>
-    /// <param name="actionsParallel"><see langword="true"/> if the actions should be invoked parallel, otherwise <see langword="false"/></param>
-    public void Start(TimeSpan period, Action[] actions, BackgroundTimerCallback callback, TimeSpan startDelay, bool actionsParallel)
-    {
-        if (IsRunning) return;
-
-        State = BackgroundTimerState.Starting;
-        Period = period;
-        async Task DoStart()
-        {
-            try
-            {
-                await Task.Delay(startDelay);
-
-                State = BackgroundTimerState.Running;
-
-                var timer = new PeriodicTimer(period);
-
-                while (await timer.WaitForNextTickAsync(_cts.Token))
-                {
-                    unchecked { CurrentTick++; }
-                    callback(CurrentTick);
-                    if (actionsParallel) Parallel.Invoke(actions);
-                    else
-                    {
-                        foreach (var action in actions) { action.Invoke(); }
-                    }
-                }
-            }
-            catch (OperationCanceledException) { }
-        }
-
-        _task = DoStart();
-    }
-
-    /// <summary>
-    /// Stops the timer
-    /// </summary>
-    public void Stop() => Task.Run(StopAsync);
-
-    /// <summary>
-    /// Stops the timer after the <see cref="TimeSpan"/>
+    /// Stops the timer synchronously
     /// </summary>
     /// <param name="endDelay">The <see cref="TimeSpan"/> the timer waits until it ends</param>
-    public void Stop(TimeSpan endDelay) => Task.Run(async () => await StopAsync(endDelay));
+    public BackgroundTimerData Stop(TimeSpan? endDelay = null)
+        => Task.Run(async () => await StopAsync(endDelay)).GetAwaiter().GetResult();
 
     /// <summary>
     /// Stops the timer asynchronously
     /// </summary>
-    public async Task StopAsync()
-    {
-        State = BackgroundTimerState.Stopping;
-
-        _cts.Cancel();
-
-        await _task;
-
-        Reset();
-    }
-
-    /// <summary>
-    /// Stops the timer asynchronously after the <see cref="TimeSpan"/>
-    /// </summary>
     /// <param name="endDelay">The <see cref="TimeSpan"/> the timer waits until it ends</param>
-    public async Task StopAsync(TimeSpan endDelay)
+    public async Task<BackgroundTimerData> StopAsync(TimeSpan? endDelay = null)
     {
         State = BackgroundTimerState.Stopping;
 
-        await Task.Delay(endDelay);
+        if (endDelay.HasValue) await Task.Delay(endDelay.Value);
 
-        _cts.Cancel();
+        cts.Cancel();
 
-        await _task;
+        await task;
+
+        var data = new BackgroundTimerData(CurrentTick, Period, State);
 
         Reset();
+
+        return data;
     }
 
     private void Reset()
     {
-        _cts.Dispose();
-        _task.Dispose();
-        _cts = new();
+        cts.Dispose();
+        task.Dispose();
+        cts = new();
         CurrentTick = 0;
         Period = TimeSpan.Zero;
         State = BackgroundTimerState.NotRunning;
@@ -610,8 +144,8 @@ public sealed class BackgroundTimer : IDisposable, IAsyncDisposable
 
         while (!IsRunning) { }
 
-        _cts.Dispose();
-        _task.Dispose();
+        cts.Dispose();
+        task.Dispose();
 
         GC.SuppressFinalize(this);
     }
@@ -621,8 +155,8 @@ public sealed class BackgroundTimer : IDisposable, IAsyncDisposable
     {
         if (IsRunning) await StopAsync();
 
-        _cts.Dispose();
-        _task.Dispose();
+        cts.Dispose();
+        task.Dispose();
 
         GC.SuppressFinalize(this);
     }

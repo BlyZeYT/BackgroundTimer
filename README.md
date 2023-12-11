@@ -17,24 +17,6 @@ Initialize a new BackgroundTimer instance.
 ```
 var timer = new BackgroundTimer();
 ```
-## Start the timer how you like to use it
-```
-timer.Start(TimeSpan.FromMilliseconds(69), () => Console.WriteLine("Running")); //Executes this action every 69 milliseconds
-
-timer.Start(TimeSpan.FromMilliseconds(69), new Action[] //Executes this actions in a row every 69 Milliseconds
-{
-    () => Console.WriteLine("Action 1"),
-    () => Console.WriteLine("Action 2"),
-    () => Console.WriteLine("Action 3")
-});
-
-timer.Start(TimeSpan.FromMilliseconds(69), new Action[] //Executes this actions parallel every 69 Milliseconds - it is random which Action is executed first, second, usw.
-{
-    () => Console.WriteLine("Action 1"),
-    () => Console.WriteLine("Action 2"),
-    () => Console.WriteLine("Action 3")
-}, true);
-```
 ## You can create a callback method
 ```
 static void BackgroundTimerCallback(int tick) => Console.WriteLine("Current tick: " + tick); //tick is the current tick of the running timer

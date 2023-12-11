@@ -15,8 +15,8 @@
     <PackageProjectUrl>https://github.com/BlyZeYT/BackgroundTimer</PackageProjectUrl>
     <Product>Background Timer</Product>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <Version>2.0.0</Version>
-    <PackageReleaseNotes>Updated to .NET 8 and refactored the code a bit.</PackageReleaseNotes>
+    <Version>3.0.0</Version>
+    <PackageReleaseNotes>Complete rewrite of the background timer</PackageReleaseNotes>
     <Title>BlyZe.$(AssemblyName)</Title>
   </PropertyGroup>
 
