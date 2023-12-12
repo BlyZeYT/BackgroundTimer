@@ -28,7 +28,7 @@ public sealed class BackgroundTimer : IDisposable, IAsyncDisposable
     public BackgroundTimerState State { get; private set; }
 
     /// <summary>
-    /// <see langword="true"/> if the <see cref="State"/> is <see cref="BackgroundTimerState.NotRunning"/>, otherwise <see langword="false"/>
+    /// <see langword="false"/> if the <see cref="State"/> is <see cref="BackgroundTimerState.NotRunning"/>, otherwise <see langword="true"/>
     /// </summary>
     public bool IsRunning => State is not BackgroundTimerState.NotRunning;
 
@@ -104,7 +104,7 @@ public sealed class BackgroundTimer : IDisposable, IAsyncDisposable
     /// </summary>
     /// <param name="endDelay">The <see cref="TimeSpan"/> the timer waits until it ends</param>
     public BackgroundTimerData Stop(TimeSpan? endDelay = null)
-        => Task.Run(async () => await StopAsync(endDelay)).GetAwaiter().GetResult();
+        => StopAsync(endDelay).GetAwaiter().GetResult();
 
     /// <summary>
     /// Stops the timer asynchronously
