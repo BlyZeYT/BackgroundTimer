@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 /// </summary>
 public sealed class BackgroundTimer : IDisposable, IAsyncDisposable
 {
-    private Task task;
     private CancellationTokenSource cts;
 
     /// <summary>
@@ -53,7 +52,6 @@ public sealed class BackgroundTimer : IDisposable, IAsyncDisposable
     /// </summary>
     public BackgroundTimer()
     {
-        task = null!;
         cts = new();
 
         CurrentTick = 0;
@@ -75,39 +73,18 @@ public sealed class BackgroundTimer : IDisposable, IAsyncDisposable
         State = BackgroundTimerState.Starting;
         Period = period;
 
-        async Task DoStart()
-        {
-            try
-            {
-                if (startDelay.HasValue) await Task.Delay(startDelay.Value);
-
-                State = BackgroundTimerState.Running;
-
-                var timer = new PeriodicTimer(period);
-
-                while (await timer.WaitForNextTickAsync(cts.Token))
-                {
-                    if (CurrentTick == stopAtTick) await StopAsync();
-
-                    unchecked { CurrentTick++; }
-                    callback(CurrentTick);
-                }
-            }
-            catch (OperationCanceledException) { }
-        }
-
-        task = DoStart();
+        Task.Run(async () => await RunAsync(this, period, callback, startDelay, stopAtTick, cts.Token));
     }
 
     /// <summary>
-    /// Stops the timer synchronously
+    /// Stops and resets the timer synchronously
     /// </summary>
     /// <param name="endDelay">The <see cref="TimeSpan"/> the timer waits until it ends</param>
     public BackgroundTimerData Stop(TimeSpan? endDelay = null)
         => StopAsync(endDelay).GetAwaiter().GetResult();
 
     /// <summary>
-    /// Stops the timer asynchronously
+    /// Stops and resets the timer asynchronously
     /// </summary>
     /// <param name="endDelay">The <see cref="TimeSpan"/> the timer waits until it ends</param>
     public async Task<BackgroundTimerData> StopAsync(TimeSpan? endDelay = null)
@@ -116,11 +93,9 @@ public sealed class BackgroundTimer : IDisposable, IAsyncDisposable
 
         if (endDelay.HasValue) await Task.Delay(endDelay.Value);
 
-        cts.Cancel();
+        await cts.CancelAsync();
 
-        await task;
-
-        var data = new BackgroundTimerData(CurrentTick, Period, State);
+        var data = new BackgroundTimerData(CurrentTick, Period);
 
         Reset();
 
@@ -130,11 +105,30 @@ public sealed class BackgroundTimer : IDisposable, IAsyncDisposable
     private void Reset()
     {
         cts.Dispose();
-        task.Dispose();
         cts = new();
         CurrentTick = 0;
         Period = TimeSpan.Zero;
         State = BackgroundTimerState.NotRunning;
+    }
+
+    private static async Task RunAsync(BackgroundTimer instance, TimeSpan period, BackgroundTimerCallback callback, TimeSpan? startDelay, int stopAtTick, CancellationToken cancelToken)
+    {
+        if (startDelay.HasValue) await Task.Delay(startDelay.Value, cancelToken);
+
+        instance.State = BackgroundTimerState.Running;
+
+        using (var timer = new PeriodicTimer(period))
+        {
+            while (await timer.WaitForNextTickAsync(CancellationToken.None))
+            {
+                if (instance.CurrentTick == stopAtTick) await instance.StopAsync();
+
+                unchecked { instance.CurrentTick++; }
+                callback(instance.CurrentTick);
+
+                if (cancelToken.IsCancellationRequested) break;
+            }
+        }
     }
 
     /// <inheritdoc/>
@@ -145,7 +139,6 @@ public sealed class BackgroundTimer : IDisposable, IAsyncDisposable
         while (!IsRunning) { }
 
         cts.Dispose();
-        task.Dispose();
 
         GC.SuppressFinalize(this);
     }
@@ -156,7 +149,6 @@ public sealed class BackgroundTimer : IDisposable, IAsyncDisposable
         if (IsRunning) await StopAsync();
 
         cts.Dispose();
-        task.Dispose();
 
         GC.SuppressFinalize(this);
     }

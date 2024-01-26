@@ -8,24 +8,18 @@ using System;
 public readonly record struct BackgroundTimerData
 {
     /// <summary>
-    /// The current tick of the currently running timer
+    /// The ticks the timer has completed
     /// </summary>
-    public int CurrentTick { get; }
+    public int Ticks { get; }
 
     /// <summary>
-    /// The period on which the timer is currently running, <see cref="TimeSpan.Zero"/> if no timer is running
+    /// The period on which the timer was running
     /// </summary>
     public TimeSpan Period { get; }
 
-    /// <summary>
-    /// The current state of the timer
-    /// </summary>
-    public BackgroundTimerState State { get; }
-
-    internal BackgroundTimerData(in int currentTick, in TimeSpan period, BackgroundTimerState state)
+    internal BackgroundTimerData(in int ticks, in TimeSpan period)
     {
-        CurrentTick = currentTick;
+        Ticks = ticks;
         Period = period;
-        State = state;
     }
 }
