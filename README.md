@@ -61,6 +61,8 @@ await Task.Delay(2500); //Imitates timer running
 //First variant - async
 if (timer.State is not BackgroundTimerState.NotRunning) await timer.StopAsync();
 
+timer.Start(TimeSpan.FromMilliseconds(420), BackgroundTimerCallback); //Start new timer safely
+
 //Second variant - loop
 if (timer.State is not BackgroundTimerState.NotRunning) timer.Stop();
 while (timer.State is not BackgroundTimerState.NotRunning) { }
