@@ -15,14 +15,10 @@
     <PackageProjectUrl>https://github.com/BlyZeYT/BackgroundTimer</PackageProjectUrl>
     <Product>Background Timer</Product>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <Version>4.0.0</Version>
-    <PackageReleaseNotes>Fixed deadlock when calling the Stop() method.</PackageReleaseNotes>
+    <Version>4.0.1</Version>
+    <PackageReleaseNotes>Removed Icon.ico</PackageReleaseNotes>
     <Title>BlyZe.$(AssemblyName)</Title>
   </PropertyGroup>
-
-  <ItemGroup>
-    <Content Include="icon.ico" />
-  </ItemGroup>
 
   <ItemGroup>
     <None Update="icon.png">
