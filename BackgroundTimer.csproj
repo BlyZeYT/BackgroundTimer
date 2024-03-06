@@ -15,8 +15,8 @@
     <PackageProjectUrl>https://github.com/BlyZeYT/BackgroundTimer</PackageProjectUrl>
     <Product>Background Timer</Product>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <Version>4.0.1</Version>
-    <PackageReleaseNotes>Removed Icon.ico</PackageReleaseNotes>
+    <Version>4.0.2</Version>
+    <PackageReleaseNotes>Fixed Bug that resulted in Dispose running forever</PackageReleaseNotes>
     <Title>BlyZe.$(AssemblyName)</Title>
   </PropertyGroup>
 

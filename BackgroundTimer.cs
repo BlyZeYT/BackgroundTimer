@@ -136,7 +136,7 @@ public sealed class BackgroundTimer : IDisposable, IAsyncDisposable
     {
         if (IsRunning) Stop();
 
-        while (!IsRunning) { }
+        while (IsRunning) { }
 
         cts.Dispose();
 
